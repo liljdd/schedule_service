@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.dianzhi.task.business.dao.ScheduleLogDao">
+
+  <insert id="insert" parameterType="ScheduleLog" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO schedule_log (
+    id, scheduletask_id, triggerGroup, triggerKey,
+    jobGroup, jobKey,
+    previousFireTime, fireTime, nextFireTime, completeTime, costTime, url,code,excuteToken )
+    VALUES
+    (
+    #{id},
+    #{scheduleTaskId},
+    #{triggerGroup},
+    #{triggerKey},
+    #{jobGroup},
+    #{jobKey},
+    #{previousFireTime},
+    #{fireTime},
+    #{nextFireTime},
+    #{completeTime},
+    #{costTime},
+    #{url},
+    #{code},
+    #{excuteToken}
+    )
+  </insert>
+
+
+  <select id="load" parameterType="ScheduleLog" resultType="ScheduleLog">
+    select * from schedule_log b
+    <where>
+      <choose>
+        <when test="id != 0">b.id = #{id}</when>
+        <otherwise>
+          <if test="scheduleTaskId!= null">and scheduletask_id=#{scheduleTaskId}</if>
+          <if test="triggerGroup!= null">and triggerGroup=#{triggerGroup}</if>
+          <if test="triggerKey!= null">and triggerKey=#{triggerKey}</if>
+          <if test="jobGroup!= null">and jobGroup=#{jobGroup}</if>
+          <if test="jobKey!= null">and jobKey=#{jobKey}</if>
+        </otherwise>
+      </choose>
+      order by b.id desc
+    </where>
+  </select>
+
+  <update id="update" parameterType="ScheduleLog">
+    update schedule_log b
+    set b.completeTime = #{completeTime},
+    b.costTime = #{costTime}
+    where b.id = #{id}
+  </update>
+  
+  
+  <!-- 更新执行日志的code-->
+  <update id="updateCodeByExcuteToken" parameterType="scheduleLog">
+    update schedule_log log
+   	set
+   		log.code = #{code}
+    where log.excuteToken = #{excuteToken}
+  </update>
+  
+  <!-- 查询日志详细内容 -->
+  <select id="selectLogDetailByIdAndTypeById" parameterType="scheduleLogDetail" resultType="scheduleLogDetail">
+  	select
+  			ld.id,ld.excuteToken,ld.createTime,ld.lastModifyTime,
+  	 <choose>
+  	 	<when test="logType==1">ld.result</when>
+  	 	<when test="logType==2">ld.logContent</when>
+  	 	<otherwise>ld.result,ld.logContent</otherwise>
+  	 </choose>
+  	 from schedule_log_detail ld where ld.scheduleLogId=#{id}
+  </select>
+  <!-- 查询日志详细内容 -->
+  <select id="selectLogDetailByIdAndTypeByExcuteToken" parameterType="scheduleLogDetail" resultType="scheduleLogDetail">
+  	select
+  			ld.id,ld.excuteToken,ld.createTime,ld.lastModifyTime,
+  	 <choose>
+  	 	<when test="logType==1">ld.result</when>
+  	 	<when test="logType==2">ld.logContent</when>
+  	 	<otherwise>ld.result,ld.logContent</otherwise>
+  	 </choose>
+  	 from schedule_log_detail ld where ld.excuteToken=#{excuteToken}
+  </select>
+  <!-- 更新日志详细内容 -->
+  <update id="updateSchedultLogDetailByExcuteToken" parameterType="scheduleLogDetail">
+    update schedule_log_detail ld
+    	<set>
+    		ld.createTime = #{createTime},
+    		ld.lastModifyTime = #{lastModifyTime},
+    		<if test="result!=null">ld.result = #{result},</if>
+    		<if test="logContent!=null">ld.logContent = #{logContent},</if>
+    	</set>
+    where ld.excuteToken = #{excuteToken}
+  </update>
+  <!-- 插入日志详细内容 -->
+  <insert id="insertSchedultLogDetail" parameterType="scheduleLogDetail" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO schedule_log_detail (
+    	result, 
+    	excuteToken,
+    	createTime,
+    	lastModifyTime,
+    	scheduleLogId
+    )
+    VALUES
+    (
+	    #{result},
+	    #{excuteToken},
+	    #{createTime},
+	    #{lastModifyTime},
+	    #{scheduleLogId}
+    )
+  </insert>
+
+</mapper>
